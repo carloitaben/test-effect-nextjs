@@ -1,5 +1,5 @@
-import Server from "@/components/cookie-server"
-import Client from "@/components/cookie-client"
+import Server from "./components/cookie-server"
+import Client from "./components/cookie-client"
 
 export default function Home() {
   return (
