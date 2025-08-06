@@ -1,3 +1,4 @@
+import "server-only"
 import { Effect, Layer } from "effect"
 import { cookies } from "next/headers"
 import { Cookies } from "./tag"

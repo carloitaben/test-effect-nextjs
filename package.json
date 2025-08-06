@@ -9,12 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@effect/platform-node": "^0.94.0",
+    "@libsql/client": "^0.15.10",
     "cookie-es": "^2.0.0",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.3",
+    "drizzle-valibot": "^0.4.2",
     "effect": "^3.16.16",
     "next": "15.4.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "valibot": "^1.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
