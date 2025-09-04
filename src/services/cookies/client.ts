@@ -21,5 +21,5 @@ export const CookiesClient = Layer.succeed(
           maxAge: 0,
         })
       }),
-  })
+  }),
 )

@@ -10,7 +10,7 @@ export class Cookies extends Context.Tag("Cookies")<
     set: (
       name: string,
       value: string,
-      cookie?: Partial<CookieSerializeOptions>
+      cookie?: Partial<CookieSerializeOptions>,
     ) => Effect.Effect<void, never, never>
     delete: (name: string) => Effect.Effect<void, never, never>
   }

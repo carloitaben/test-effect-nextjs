@@ -10,15 +10,15 @@ export const CookiesServer = Layer.succeed(
       Effect.promise(cookies).pipe(Effect.map((cookies) => cookies.has(name))),
     get: (name) =>
       Effect.promise(cookies).pipe(
-        Effect.map((cookies) => cookies.get(name)?.name)
+        Effect.map((cookies) => cookies.get(name)?.name),
       ),
     set: (name, value, cookie) =>
       Effect.promise(cookies).pipe(
-        Effect.tap((cookies) => cookies.set(name, value, cookie))
+        Effect.tap((cookies) => cookies.set(name, value, cookie)),
       ),
     delete: (name) =>
       Effect.promise(cookies).pipe(
-        Effect.tap((cookies) => cookies.delete(name))
+        Effect.tap((cookies) => cookies.delete(name)),
       ),
-  })
+  }),
 )

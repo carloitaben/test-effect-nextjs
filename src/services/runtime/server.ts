@@ -6,7 +6,7 @@ import { CookiesServer } from "../cookies/server"
 export const MainServer = Layer.mergeAll(
   Layer.provide(Drizzle.Default, Database.Default),
   CookiesServer,
-  Post.Default
+  Post.Default,
 )
 
 export const ServerRuntime = ManagedRuntime.make(MainServer)

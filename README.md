@@ -1,1 +1,2 @@
+- `/src/app/scopes`: experimenting with finalizers otel and streaming the result. Otel integration is insane
 - `/src/app/cookies`: experimenting with isomorphic cookies. Similar to [Standard Cookie](https://github.com/carloitaben/standard-cookie) but using DI instead of export conditions 🤯
