@@ -1,4 +1,4 @@
-import { Data } from "effect"
+import { Data, ParseResult } from "effect"
 import { type NonEmptyReadonlyArray } from "effect/Array"
 import * as Context from "effect/Context"
 import * as Effect from "effect/Effect"
@@ -17,22 +17,63 @@ export type InferPermissions<T extends PermissionConfig> = {
 }[keyof T]
 
 export const makePermissions = <T extends PermissionConfig>(
-  config: T
+  config: T,
 ): Array<InferPermissions<T>> => {
   return Object.entries(config).flatMap(([domain, actions]) =>
-    actions.map((action) => `${domain}:${action}` as InferPermissions<T>)
+    actions.map((action) => `${domain}:${action}` as InferPermissions<T>),
   )
 }
 
 const Permissions = makePermissions({
   collection: ["read", "upsert", "delete"],
-} as const)
+})
 
 export const Permission = Schema.Literal(...Permissions).annotations({
   identifier: "Permission",
 })
 
 export type Permission = typeof Permission.Type
+
+export const Role = Schema.Literal("admin", "moderator", "user").annotations({
+  identifier: "Role",
+})
+
+export type Role = typeof Role.Type
+
+export const PermissionsFromRole = Schema.transformOrFail(
+  Role,
+  Schema.Array(Permission),
+  {
+    strict: true,
+    decode: (role) => {
+      switch (role) {
+        case "admin":
+          return ParseResult.succeed([
+            "collection:upsert",
+            "collection:delete",
+            "collection:read",
+          ] as const satisfies Permission[])
+        case "moderator":
+          return ParseResult.succeed([
+            "collection:delete",
+            "collection:read",
+          ] as const satisfies Permission[])
+        case "user":
+          return ParseResult.succeed([
+            "collection:read",
+          ] as const satisfies Permission[])
+      }
+    },
+    encode: (permissions, _, ast) =>
+      ParseResult.fail(
+        new ParseResult.Forbidden(
+          ast,
+          permissions,
+          "Encoding permissions back to a role is unsupported.",
+        ),
+      ),
+  },
+)
 
 // export class UserAuthMiddleware extends HttpApiMiddleware.Tag<UserAuthMiddleware>()(
 //   "UserAuthMiddleware",
@@ -58,12 +99,12 @@ type Policy<E = never, R = never> = Effect.Effect<void, Forbidden | E, User | R>
  */
 export const policy = <E, R>(
   predicate: (user: User["Type"]) => Effect.Effect<boolean, E, R>,
-  message?: string
+  message?: string,
 ): Policy<E, R> =>
   Effect.flatMap(User, (user) =>
     Effect.flatMap(predicate(user), (result) =>
-      result ? Effect.void : Effect.fail(new Forbidden({ message }))
-    )
+      result ? Effect.void : Effect.fail(new Forbidden({ message })),
+    ),
   )
 
 /**
