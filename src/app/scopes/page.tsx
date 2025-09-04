@@ -1,6 +1,7 @@
+import { NodeSdkLive } from "@/services/otel"
 import { Post } from "@/services/post"
 import { MainServer } from "@/services/runtime/server"
-import { Effect } from "effect"
+import { Effect, Logger, LogLevel } from "effect"
 
 const program = Effect.gen(function* () {
   const post = yield* Post
@@ -11,7 +12,7 @@ const program = Effect.gen(function* () {
       post.create(Math.random().toString()),
       post.create(Math.random().toString()),
     ],
-    { concurrency: "unbounded" }
+    { concurrency: "unbounded" },
   )
 
   return yield* post.all()
@@ -19,7 +20,12 @@ const program = Effect.gen(function* () {
 
 export default async function Page() {
   const result = await Effect.runPromiseExit(
-    Effect.provide(program, MainServer)
+    program.pipe(
+      Effect.withSpan("Scopes page"),
+      Logger.withMinimumLogLevel(LogLevel.Debug),
+      Effect.provide(MainServer),
+      Effect.provide(NodeSdkLive),
+    ),
   )
 
   return (

@@ -1,8 +1,8 @@
-import "server-only";
-import { Config, Context, Data, Effect, Layer, Match } from "effect";
-import { Client, createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "./schema";
+import "server-only"
+import { Config, Context, Data, Effect, Layer, Match } from "effect"
+import { Client, createClient } from "@libsql/client"
+import { drizzle } from "drizzle-orm/libsql"
+import * as schema from "./schema"
 
 export class DatabaseClientError extends Data.TaggedError(
   "DatabaseClientError",
@@ -22,7 +22,7 @@ export class Database extends Context.Tag("Database")<Database, Client>() {
       }),
       (client) => Effect.sync(() => client.close()),
     ),
-  );
+  )
 
   static readonly Live = Layer.scoped(
     Database,
@@ -37,22 +37,15 @@ export class Database extends Context.Tag("Database")<Database, Client>() {
       }),
       (client) => Effect.sync(() => client.close()),
     ),
-  );
+  )
 
   static readonly Default = Layer.unwrapEffect(
-    Config.literal(
-      "development",
-      "production",
-    )("NODE_ENV").pipe(
+    Config.string("NODE_ENV").pipe(
       Effect.andThen((value) =>
-        Match.value(value).pipe(
-          Match.when("development", () => this.Test),
-          Match.when("production", () => this.Live),
-          Match.exhaustive,
-        ),
+        value === "development" ? this.Test : this.Live,
       ),
     ),
-  );
+  )
 }
 
 export class DrizzleQueryError extends Data.TaggedError(
@@ -61,15 +54,18 @@ export class DrizzleQueryError extends Data.TaggedError(
 
 export class Drizzle extends Effect.Service<Drizzle>()("Drizzle", {
   effect: Effect.gen(function* () {
-    const database = yield* Database;
-    const orm = drizzle(database, { schema });
+    const database = yield* Database
+    const orm = drizzle(database, { schema })
+
     return {
-      run<Result>(callback: (client: typeof orm) => Promise<Result>) {
-        return Effect.tryPromise({
+      run: Effect.fn("Drizzle run")(function* <A>(
+        callback: (client: typeof orm) => Promise<A>,
+      ) {
+        return yield* Effect.tryPromise({
           try: () => callback(orm),
-          catch: (error) => new DrizzleQueryError({ cause: error }),
-        });
-      },
-    };
+          catch: (cause) => new DrizzleQueryError({ cause }),
+        }).pipe(Effect.withLogSpan("query"))
+      }),
+    }
   }),
 }) {}
